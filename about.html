@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>About — LLM Wiki</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="vendor/katex.min.css">
+<style>
+  #facts{display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); gap:11px}
+  .fact{
+    background:#fff; border:1px solid var(--line); border-radius:11px;
+    padding:13px 15px; display:flex; flex-direction:column; gap:2px;
+  }
+  .fact b{font-size:21px; letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+  .fact span{font-size:12px; color:var(--muted)}
+  .doc h1{font-size:20px; margin:20px 0 10px}
+  .doc h2{font-size:16px; margin:24px 0 9px; padding-bottom:6px; border-bottom:1px solid var(--line)}
+  .doc h3{font-size:14.5px; margin:18px 0 7px}
+  .doc p,.doc li{line-height:1.78}
+  .doc code{background:#f1f5f9; border-radius:4px; padding:1px 5px; font-size:12.5px}
+  .doc pre{
+    background:#f8fafc; border:1px solid var(--line); border-radius:9px;
+    padding:12px 14px; overflow-x:auto; font-size:12.5px; line-height:1.6;
+  }
+  .doc pre code{background:none; padding:0}
+  .doc hr{border:0; border-top:1px solid var(--line); margin:22px 0}
+  details.card summary{cursor:pointer; font-weight:650; font-size:15px}
+  details.card[open] summary{margin-bottom:10px}
+</style>
+</head>
+<body>
+
+<main>
+  <div class="card">
+    <h2 data-i18n="about.h"></h2>
+    <p data-i18n-html="about.lead"></p>
+    <p class="small muted" data-i18n-html="about.lead2"></p>
+  </div>
+
+  <div id="facts"></div>
+
+  <div class="card">
+    <h2 data-i18n="about.howTitle"></h2>
+    <ul class="small">
+      <li data-i18n-html="about.howGraph"></li>
+      <li data-i18n-html="about.howCatalog"></li>
+      <li data-i18n-html="about.howConcepts"></li>
+    </ul>
+  </div>
+
+  <div class="card doc" id="manual"><div class="spinner" data-i18n="about.manualLoading"></div></div>
+
+  <details class="card doc">
+    <summary data-i18n="about.agentsSummary"></summary>
+    <div id="agents"><div class="spinner"></div></div>
+  </details>
+</main>
+
+<script src="vendor/marked.min.js"></script>
+<script src="vendor/katex.min.js"></script>
+<script type="module" src="assets/about.js"></script>
+</body>
+</html>
