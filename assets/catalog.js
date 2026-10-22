@@ -4,7 +4,7 @@
 
 import {
   mountShell, loadGraph, escapeHtml, viewerUrl, debounce, typeLabel, TYPES, t,
-} from "./shell.js?v=f08bc49e";
+} from "./shell.js?v=20261022-degree-fit3";
 
 const PAGE = 100;
 let graph, rows, view, page = 0;
@@ -91,8 +91,8 @@ function syncUrl() {
     const c = extra.get(n.id) || {};
     return {
       id: n.id, t: n.t, ty: n.ty, y: n.yr, g: n.g, tg: n.tg,
-      j: c.j || "", sm: c.sm || "",
-      hay: `${n.t}\n${n.id}\n${n.tg.join(" ")}\n${c.j || ""}\n${c.sm || ""}`.toLowerCase(),
+      j: c.j || "", sm: c.sm || "", doi: c.doi || "",
+      hay: `${n.t}\n${n.id}\n${n.tg.join(" ")}\n${c.j || ""}\n${c.doi || ""}\n${c.sm || ""}`.toLowerCase(),
     };
   });
 

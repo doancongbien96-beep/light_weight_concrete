@@ -5,8 +5,8 @@
 
 import {
   mountShell, loadGraph, buildAdjacency, escapeHtml, viewerUrl, typeLabel, t,
-} from "./shell.js?v=f08bc49e";
-import { configureMarked, parseFrontMatter, renderMarkdown, headingId } from "./md.js?v=f08bc49e";
+} from "./shell.js?v=20261022-degree-fit3";
+import { configureMarked, parseFrontMatter, renderMarkdown, headingId } from "./md.js?v=20261022-degree-fit3";
 
 const DOI_RE = /https?:\/\/(?:dx\.)?doi\.org\/\S+/;
 let graph, adj;
@@ -17,7 +17,7 @@ async function show(slug, { push = false } = {}) {
   const node = graph.byId.get(slug);
   if (!node) return notFound(slug);
 
-  document.title = `${node.t} — LLM Wiki`;
+  document.title = `${node.t} — ${t("site.title")}`;
   if (push) history.pushState({ slug }, "", viewerUrl(slug));
 
   el("body").innerHTML = `<div class="spinner">${t("view.loading")}</div>`;
@@ -51,7 +51,14 @@ function renderMeta(node, fm) {
   // on concept notes, a list of wikilinks to related notes.
   const src = String(fm.source || "");
   const srcLinks = [...src.matchAll(/\[\[([^\]\[|#]+)/g)].map((m) => m[1].trim());
-  const srcHtml = srcLinks.length
+  const localPdf = src.startsWith("../") && /\.pdf$/i.test(src);
+  const isLocalPreview = ["localhost", "127.0.0.1"].includes(location.hostname);
+  const srcHtml = localPdf
+    ? `${isLocalPreview
+        ? `<a href="${encodeURI(src)}" target="_blank" rel="noopener">${escapeHtml(src.slice(3))} ↗</a>`
+        : `<span class="muted">${escapeHtml(src.slice(3))}</span>
+           <span class="muted small">${t("view.pdfLocalOnly")}</span>`}`
+    : srcLinks.length
     ? srcLinks.map((s) => graph.byId.has(s)
         ? `<a href="${viewerUrl(s)}" data-slug="${escapeHtml(s)}" class="wl">${escapeHtml(graph.byId.get(s).t)}</a>`
         : escapeHtml(s)).join(", ")
@@ -112,7 +119,7 @@ function renderSide(node) {
 }
 
 function notFound(slug) {
-  document.title = `${t("view.notFound")} — LLM Wiki`;
+  document.title = `${t("view.notFound")} — ${t("site.title")}`;
   el("meta").innerHTML = `<div class="card">
       <h1>${t("view.notFound")}</h1>
       <p class="muted"><code>${escapeHtml(slug || "—")}</code></p>

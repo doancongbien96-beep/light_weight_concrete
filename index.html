@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LLM Wiki</title>
+<title>Research Library · Lightweight Concrete</title>
 <meta name="description" content="Citation network of a cementitious-composites research wiki">
-<link rel="stylesheet" href="assets/style.css?v=f08bc49e">
+<link rel="stylesheet" href="assets/style.css?v=20261022-degree-fit3">
 <link rel="prefetch" href="vendor/katex.min.js">
 <style>
   /* Flex column instead of a hardcoded stage height: the controls bar wraps to
@@ -17,7 +17,7 @@
      of a viewport-locked canvas, so the graph page tightens the spacing. The
      brand keeps its three lines -- only the padding shrinks. */
   footer.site{margin-top:0; padding:12px 24px; font-size:12px}
-  /* nowrap keeps the lab link on the right rather than on a fourth row */
+  /* Keep the footer branding aligned on one row. */
   .footer-inner{align-items:center; flex-wrap:nowrap}
   .footer-brand{flex:1; min-width:0}
   #controls{
@@ -26,14 +26,24 @@
   }
   #controls .grp{display:flex; gap:7px; align-items:center}
   #search{width:230px}
-  /* a <select> sizes to its widest option; some tags are very long */
+  /* The full topic list can contain long labels. */
   #tagFilter{max-width:210px}
+  #typeFilters{flex-wrap:wrap}
+  #typeFilters .category-chip{white-space:nowrap}
   #hits{font-size:12.5px; color:var(--muted); min-width:34px}
   #degWrap{display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--muted)}
   #degFilter{width:104px}
   #degValue{font-variant-numeric:tabular-nums; font-weight:700; color:var(--ink); min-width:16px}
+  #degreeLegend{
+    position:absolute; left:16px; bottom:14px; z-index:2;
+    display:flex; align-items:center; gap:7px; padding:6px 9px;
+    background:rgba(255,255,255,.92); border:1px solid var(--line);
+    border-radius:7px; color:var(--muted); font-size:11px;
+  }
+  .degree-ramp{width:70px; height:8px; border-radius:5px;
+    background:linear-gradient(90deg,#94a3b8,#3b82f6,#f97316)}
 
-  #stage{display:flex; flex:1; min-height:0}
+  #stage{position:relative; display:flex; flex:1; min-height:0}
   /* faint tint so the white detail panel reads as a separate surface */
   #net{flex:1; min-width:0; min-height:0; display:block; background:#f4f6f9;
        touch-action:none; cursor:grab}
@@ -80,8 +90,8 @@
     <input type="search" id="search" data-i18n-ph="graph.search" autocomplete="off">
     <span id="hits"></span>
   </div>
-  <span id="typeFilters" class="grp"></span>
-  <select id="tagFilter"></select>
+  <span id="typeFilters" class="grp" aria-label="Quick topic filters"></span>
+  <select id="tagFilter" aria-label="Filter by topic"></select>
   <span id="degWrap">
     <span data-i18n="graph.degree"></span> <input type="range" id="degFilter" min="0" max="50" value="0" step="1">
     <span id="degValue">0</span>
@@ -92,12 +102,13 @@
 
 <div id="stage">
   <canvas id="net"></canvas>
+  <div id="degreeLegend" role="img" aria-label="Node size and color indicate the number of paper connections"></div>
   <aside id="detail"></aside>
 </div>
 
 <div id="tooltip"></div>
 
 <script src="vendor/d3.v7.min.js"></script>
-<script type="module" src="assets/graph.js?v=f08bc49e"></script>
+<script type="module" src="assets/graph.js?v=20261022-degree-fit3"></script>
 </body>
 </html>

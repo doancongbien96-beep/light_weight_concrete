@@ -1,15 +1,14 @@
-nodes            973
-edges            3437
-graph.json       430 KB
-catalog.json     368 KB
-types            {'concept': 23, 'source_note': 859, 'reference_book': 90, 'overview': 1}
-distinct tags    3272
-year coverage    906/973
+nodes            120
+edges            1354
+graph.json       49 KB
+catalog.json     13 KB
+types            {'source_note': 120}
+distinct tags    14
+year coverage    120/120
 
 [LINT] duplicate slugs      0
 [LINT] broken wikilinks     0
-[LINT] unbalanced '$'       1
-         nematollahi-2017-thermal-mechanical-properties-lightweight-strain-hardening-geopolymer-composites
-[LINT] isolated (deg 0)     0
+[LINT] unbalanced '$'       0
+[LINT] isolated (deg 0)     4
 [LINT] invalid date         0
-[LINT] no year in citation  67
+[LINT] no year in citation  0

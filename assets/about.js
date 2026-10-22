@@ -2,8 +2,8 @@
 // the viewer uses, so wikilinks inside them become live links and there is one
 // source of truth for the documentation.
 
-import { mountShell, loadGraph, escapeHtml, viewerUrl, t } from "./shell.js?v=f08bc49e";
-import { configureMarked, parseFrontMatter, renderMarkdown } from "./md.js?v=f08bc49e";
+import { mountShell, loadGraph, escapeHtml, viewerUrl, t } from "./shell.js?v=20261022-degree-fit3";
+import { configureMarked, parseFrontMatter, renderMarkdown } from "./md.js?v=20261022-degree-fit3";
 
 const DOCS = [
   ["manual", "docs/MANUAL.md"],
@@ -17,7 +17,11 @@ const DOCS = [
 
   const { n, m, types, tagTotal, years } = graph.meta;
   const yrs = Object.keys(years).map(Number);
-  document.getElementById("facts").innerHTML = `
+  document.getElementById("facts").innerHTML = graph.meta.lang === "en" ? `
+    <div class="fact"><b>${n}</b><span>PDF papers</span></div>
+    <div class="fact"><b>${m.toLocaleString()}</b><span>${t("fact.links")}</span></div>
+    <div class="fact"><b>${tagTotal.toLocaleString()}</b><span>Topics</span></div>
+    <div class="fact"><b>${Math.min(...yrs)}–${Math.max(...yrs)}</b><span>${t("fact.years")}</span></div>` : `
     <div class="fact"><b>${n}</b><span>${t("fact.notes")}</span></div>
     <div class="fact"><b>${m.toLocaleString()}</b><span>${t("fact.links")}</span></div>
     <div class="fact"><b>${types.concept ?? 0}</b><span>${t("fact.concepts")}</span></div>

@@ -182,7 +182,8 @@ def build(wiki, out, strict, lang):
                   for r in (records[s] for s in slugs)],
         "links": sorted([index_of[a], index_of[b]] for a, b in edges),
     }
-    catalog = [{"id": r["id"], "j": r["j"], "sm": r["sm"]}
+    catalog = [{"id": r["id"], "j": r["j"], "sm": r["sm"],
+                "doi": DOI_RE.search(r["c"]).group(0) if DOI_RE.search(r["c"]) else ""}
                for r in (records[s] for s in slugs)]
 
     (out / "data").mkdir(exist_ok=True)
@@ -234,7 +235,7 @@ def main():
                     default=Path.home() / "Documents/Research_Knowledge/llm_wiki/wiki")
     ap.add_argument("--out", type=Path, default=Path(__file__).resolve().parent.parent)
     ap.add_argument("--strict", action="store_true")
-    ap.add_argument("--lang", default="ko", choices=("ko", "en"),
+    ap.add_argument("--lang", default="ko", choices=("ko", "en", "vi"),
                     help="UI language for the generated site")
     args = ap.parse_args()
     build(args.wiki.resolve(), args.out.resolve(), args.strict, args.lang)

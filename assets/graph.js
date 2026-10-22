@@ -1,4 +1,4 @@
-// Canvas force graph for 975 nodes / 3447 edges.
+// Canvas force graph for the papers in the personal library.
 //
 // Coordinates arrive pre-solved from tools/layout.mjs, so the page paints a
 // settled graph immediately and the simulation stays stopped until the user
@@ -8,10 +8,11 @@
 import {
   mountShell, loadGraph, buildAdjacency, escapeHtml, viewerUrl, debounce,
   typeLabel, TYPES, TYPE_COLOR, t,
-} from "./shell.js?v=f08bc49e";
+} from "./shell.js?v=20261022-degree-fit3";
 
 const TAU = Math.PI * 2;
-const nodeRadius = (g) => Math.min(26, 3 + 1.8 * Math.sqrt(g));
+const nodeRadius = (g) => Math.min(11, 2 + 1.1 * Math.sqrt(g));
+const DEGREE_COLOR_STEPS = 13;
 
 const canvas = document.getElementById("net");
 const ctx = canvas.getContext("2d");
@@ -24,6 +25,8 @@ let hovered = null, selected = null;
 let matched = null;                       // Set of indices, or null when no search
 let neighbourOnly = false;
 let minDegree = 0;
+let degreeColors = [];
+let maxDegree = 1;
 const activeTypes = new Set(TYPES);
 let activeTag = "";
 let pending = false;
@@ -71,11 +74,15 @@ function focusSet() {
 }
 
 function labelCutoff(k) {
-  if (k < 0.8) return 60;
-  if (k < 1.3) return 20;
-  if (k < 2.2) return 10;
-  if (k < 4.0) return 4;
+  if (k < 3.2) return Infinity;
+  if (k < 4.2) return 30;
+  if (k < 5.5) return 15;
+  if (k < 7.0) return 6;
   return 0;
+}
+
+function degreeColorIndex(degree) {
+  return Math.round(Math.min(degree, maxDegree) / maxDegree * (degreeColors.length - 1));
 }
 
 function draw() {
@@ -117,14 +124,14 @@ function draw() {
     ctx.stroke();
   }
 
-  // --- nodes: one path per colour ---
-  for (const [type, color] of Object.entries(TYPE_COLOR)) {
+  // --- nodes: group by connection-count color ---
+  for (let colorIndex = 0; colorIndex < degreeColors.length; colorIndex++) {
     for (const bright of [false, true]) {
       if (dim === false && bright) continue;
       ctx.beginPath();
       let any = false;
       for (const n of nodes) {
-        if (n.ty !== type || !n.vis) continue;
+        if (!n.vis || degreeColorIndex(n.g) !== colorIndex) continue;
         if (dim && focus.has(n.i) !== bright) continue;
         // moveTo before arc, or consecutive arcs get joined by a stray line
         ctx.moveTo(n.x + n.r, n.y);
@@ -133,7 +140,7 @@ function draw() {
       }
       if (!any) continue;
       ctx.globalAlpha = dim ? (bright ? 1 : 0.14) : 1;
-      ctx.fillStyle = color;
+      ctx.fillStyle = degreeColors[colorIndex];
       ctx.fill();
     }
   }
@@ -163,7 +170,7 @@ function drawLabels(focus) {
 
   for (const n of nodes) {
     if (!n.vis) continue;
-    const forced = n === hovered || n === selected || (focus && focus.has(n.i));
+    const forced = n === hovered || n === selected;
     if (!forced && n.g < cut) continue;
     const sx = n.x * T.k + T.x;
     const sy = n.y * T.k + T.y;
@@ -267,24 +274,55 @@ function renderSidebar() {
 function buildControls() {
   const typeBox = document.getElementById("typeFilters");
   const counts = graph.meta.types;
-  typeBox.innerHTML = TYPES
-    .filter((ty) => counts[ty])
-    .map((ty) => `<button class="chip on" data-type="${ty}">
+  const presentTypes = TYPES.filter((ty) => counts[ty]);
+  if (presentTypes.length > 1) {
+    typeBox.innerHTML = presentTypes.map((ty) => `<button class="chip on" data-type="${ty}" aria-pressed="true">
         <span class="dot" style="background:${TYPE_COLOR[ty]}"></span>${typeLabel(ty)} ${counts[ty]}
       </button>`).join("");
-  typeBox.querySelectorAll("[data-type]").forEach((b) =>
-    b.addEventListener("click", () => {
-      const t = b.dataset.type;
-      activeTypes.has(t) ? activeTypes.delete(t) : activeTypes.add(t);
-      b.classList.toggle("on");
-      refreshVisibility();
-    }));
+    typeBox.querySelectorAll("[data-type]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const ty = b.dataset.type;
+        activeTypes.has(ty) ? activeTypes.delete(ty) : activeTypes.add(ty);
+        b.classList.toggle("on");
+        b.setAttribute("aria-pressed", String(activeTypes.has(ty)));
+        refreshVisibility();
+      }));
+  } else {
+    const quickTags = graph.meta.topTags.slice(0, 4);
+    const colors = ["#2563eb", "#059669", "#d97706", "#7c3aed"];
+    typeBox.innerHTML = quickTags.map(([tag, count], i) => {
+      const label = tag === "3d-printing" ? "3D printing" :
+        tag.split("-").map((part) => part[0].toUpperCase() + part.slice(1)).join(" ");
+      return `<button class="chip category-chip" data-tag="${escapeHtml(tag)}" aria-pressed="false">
+        <span class="dot" style="background:${colors[i % colors.length]}"></span>${escapeHtml(label)} ${count}
+      </button>`;
+    }).join("");
+    typeBox.querySelectorAll("[data-tag]").forEach((b) =>
+      b.addEventListener("click", () => {
+        activeTag = activeTag === b.dataset.tag ? "" : b.dataset.tag;
+        tagSel.value = activeTag;
+        syncCategoryChips();
+        refreshVisibility();
+      }));
+  }
 
   const tagSel = document.getElementById("tagFilter");
   tagSel.innerHTML = `<option value="">${t("graph.tagsAll", { n: graph.meta.tagTotal })}</option>` +
     graph.meta.topTags.map(([t, c]) =>
       `<option value="${escapeHtml(t)}">${escapeHtml(t)} (${c})</option>`).join("");
-  tagSel.addEventListener("change", () => { activeTag = tagSel.value; refreshVisibility(); });
+  tagSel.addEventListener("change", () => {
+    activeTag = tagSel.value;
+    syncCategoryChips();
+    refreshVisibility();
+  });
+
+  function syncCategoryChips() {
+    typeBox.querySelectorAll("[data-tag]").forEach((b) => {
+      const active = b.dataset.tag === activeTag;
+      b.classList.toggle("on", active);
+      b.setAttribute("aria-pressed", String(active));
+    });
+  }
 
   const deg = document.getElementById("degFilter");
   const degOut = document.getElementById("degValue");
@@ -330,7 +368,14 @@ function buildControls() {
 }
 
 function fitToScreen({ animate = true } = {}) {
-  const [x0, y0, x1, y1] = graph.meta.extent;
+  // Isolated notes are laid out far from the connected graph. Fit the useful
+  // network first, while leaving isolated notes searchable and selectable.
+  const fitNodes = nodes.filter((n) => n.g > 0);
+  const points = fitNodes.length ? fitNodes : nodes;
+  const x0 = Math.min(...points.map((n) => n.x));
+  const y0 = Math.min(...points.map((n) => n.y));
+  const x1 = Math.max(...points.map((n) => n.x));
+  const y1 = Math.max(...points.map((n) => n.y));
   const k = Math.min(W / (x1 - x0 + 80), H / (y1 - y0 + 80), 4);
   const target = d3.zoomIdentity
     .translate(W / 2, H / 2).scale(k)
@@ -347,6 +392,13 @@ let zoomBehaviour;
   mountShell({ subtitle: "sub.graph" });
   graph = await loadGraph();
   nodes = graph.nodes;
+  maxDegree = Math.max(1, ...nodes.map((n) => n.g));
+  const colorRamp = d3.interpolateRgbBasis(["#94a3b8", "#3b82f6", "#f97316"]);
+  degreeColors = Array.from({ length: DEGREE_COLOR_STEPS }, (_, i) =>
+    colorRamp(i / (DEGREE_COLOR_STEPS - 1)));
+  document.getElementById("degreeLegend").innerHTML = `
+    <span>Fewer links</span><span class="degree-ramp" aria-hidden="true"></span>
+    <span>More links (${maxDegree})</span>`;
   links = graph.links.map(([s, t]) => ({ source: nodes[s], target: nodes[t] }));
   adj = buildAdjacency(graph);
   nodes.forEach((n) => { n.r = nodeRadius(n.g); n.vis = true; });

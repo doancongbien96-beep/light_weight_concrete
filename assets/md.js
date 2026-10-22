@@ -14,7 +14,7 @@
 // markdown processing at all, and the Pandoc pairing rule below leaves currency
 // alone.
 
-import { t } from "./i18n.js?v=f08bc49e";
+import { t } from "./i18n.js?v=20261022-degree-fit3";
 
 const escapeHtml = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) =>

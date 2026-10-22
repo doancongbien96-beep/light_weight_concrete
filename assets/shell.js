@@ -2,23 +2,20 @@
 // Every URL here is relative -- the site is served from /<repo>/ on GitHub
 // Pages, so a leading slash would resolve to the user-page root and 404.
 
-import { t, setLang, applyStatic } from "./i18n.js?v=f08bc49e";
+import { t, setLang, applyStatic } from "./i18n.js?v=20261022-degree-fit3";
 
 const PAGES = [
   ["index.html", "nav.graph"],
   ["catalog.html", "nav.catalog"],
-  ["concepts.html", "nav.concepts"],
   ["about.html", "nav.about"],
 ];
 
 export const TYPES = ["concept", "source_note", "reference_book", "overview"];
 
-// The two editions are separate repos serving byte-identical assets, so the
-// switch is just a cross-site link. Note slugs match across editions, which is
-// what lets it carry the current page and query straight over.
+// The source wiki editions use a cross-site switch. This personal English
+// library has no sibling edition, so it does not display that switch.
 const SIBLING_SITE = {
   ko: "https://ekvm80.github.io/llm-wiki-en/",
-  en: "https://ekvm80.github.io/llm-wiki/",
 };
 
 /** URL of the current page in the other edition, keeping page + query. */
@@ -38,12 +35,7 @@ export const TYPE_COLOR = {
 
 export const typeLabel = (ty) => t(`type.${ty}`) || ty;
 
-// The wiki is one output of the lab, so its footer mirrors the lab homepage's
-// (ekvm80.github.io/cmlab) brand block verbatim, so the two sites read as one
-// property. Where the lab site lists its own sections, the wiki just points
-// back at it -- deep links into another site's nav would go stale here.
-const LAB_SITE = "https://ekvm80.github.io/cmlab/";
-
+// Footer labels come from the active language strings.
 let subtitleKey = "";
 let activePage = "";
 
@@ -87,7 +79,7 @@ function paintShell(meta) {
   applyStatic();
 }
 
-/** Brand block + lab-site links, mirroring the lab homepage footer. */
+/** Render the library footer. */
 function paintFooter() {
   const el = document.getElementById("siteFooter");
   if (!el) return;
@@ -97,16 +89,14 @@ function paintFooter() {
       ${escapeHtml(t("footer.dept"))}<br>
       ${escapeHtml(t("footer.copy", { year: new Date().getFullYear() }))}
     </div>
-    <div class="footer-links">
-      <a href="${LAB_SITE}">${escapeHtml(t("footer.labSite"))}</a>
-    </div>`;
+    `;
 }
 
 let graphPromise = null;
 /** Fetch data/graph.json once per page, index it, and localise the shell. */
 export function loadGraph() {
   if (!graphPromise) {
-    graphPromise = fetch("data/graph.json", { cache: "force-cache" })
+    graphPromise = fetch("data/graph.json?v=20261022-degree-fit3", { cache: "no-cache" })
       .then((r) => {
         if (!r.ok) throw new Error(`graph.json ${r.status}`);
         return r.json();
